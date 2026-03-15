@@ -885,7 +885,7 @@ export default function Home() {
               transition={{ duration: 0.6 }}
               className="order-2 md:order-1 md:col-span-6"
             >
-              <div className="min-h-6 text-xs uppercase tracking-[0.2em] text-[color:var(--muted)] md:min-h-7 md:text-sm">
+              <div className="min-h-6 text-xs uppercase tracking-[0.2em] text-zinc-700 md:min-h-7 md:text-sm dark:text-zinc-200">
                 <TypingAnimation
                   words={[
                     "Fullstack Developer",
