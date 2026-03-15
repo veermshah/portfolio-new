@@ -1,6 +1,6 @@
 "use client";
 
-import React, { type ElementType, type ReactNode, useEffect, useState } from "react";
+import React, { type ElementType, type ReactNode, useEffect, useRef, useState } from "react";
 
 export interface VideoTextProps {
   src: string;
@@ -39,6 +39,7 @@ export function VideoText({
   const [svgMask, setSvgMask] = useState("");
   const [videoFailed, setVideoFailed] = useState(false);
   const [maskSupported, setMaskSupported] = useState(true);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const content = React.Children.toArray(children).join("");
 
   const responsiveFontSize =
@@ -67,6 +68,27 @@ export function VideoText({
     window.addEventListener("resize", updateSvgMask);
     return () => window.removeEventListener("resize", updateSvgMask);
   }, [content, fontSize, fontWeight, textAnchor, dominantBaseline, fontFamily]);
+
+  useEffect(() => {
+    if (!autoPlay) return;
+
+    const video = videoRef.current;
+    if (!video) return;
+    video.defaultMuted = muted;
+
+    const tryPlay = () => {
+      const playPromise = video.play();
+      if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch(() => {
+          // Mobile browsers may still block autoplay in low-power or data-saver modes.
+        });
+      }
+    };
+
+    tryPlay();
+    video.addEventListener("loadeddata", tryPlay);
+    return () => video.removeEventListener("loadeddata", tryPlay);
+  }, [autoPlay, src]);
 
   const dataUrlMask = `url("data:image/svg+xml,${encodeURIComponent(svgMask)}")`;
   const shouldFallback = videoFailed || !maskSupported || !svgMask;
@@ -102,6 +124,7 @@ export function VideoText({
           }}
         >
           <video
+            ref={videoRef}
             className="h-full w-full object-cover"
             autoPlay={autoPlay}
             muted={muted}
