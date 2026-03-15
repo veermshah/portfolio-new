@@ -6,13 +6,9 @@ import { flushSync } from "react-dom";
 
 import { cn } from "@/lib/utils";
 
-declare global {
-  interface Document {
-    startViewTransition?: (callback: () => void) => {
-      ready?: Promise<void>;
-    };
-  }
-}
+type ViewTransitionLike = {
+  ready?: Promise<void>;
+};
 
 interface AnimatedThemeTogglerProps
   extends React.ComponentPropsWithoutRef<"button"> {
@@ -65,12 +61,18 @@ export const AnimatedThemeToggler = ({
       localStorage.setItem("theme", newTheme ? "dark" : "light");
     };
 
-    if (typeof document.startViewTransition !== "function") {
+    const startViewTransition = (
+      document as Document & {
+        startViewTransition?: (callback: () => void) => ViewTransitionLike;
+      }
+    ).startViewTransition;
+
+    if (typeof startViewTransition !== "function") {
       applyTheme();
       return;
     }
 
-    const transition = document.startViewTransition(() => {
+    const transition = startViewTransition(() => {
       flushSync(applyTheme);
     });
 
